@@ -3,3 +3,5 @@ scipy
 imutils
 opencv-python
 argparse
+matplotlib
+schedule
