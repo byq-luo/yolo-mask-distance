@@ -1,0 +1,4 @@
+*.pyc
+*.DS_Store
+mylib/__pycache__/*
+mylib/videos/.DS_Store
