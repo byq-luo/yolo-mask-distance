@@ -1,5 +1,9 @@
 # base path to YOLO directory
-MODEL_PATH = "yolo"
+PEOPLE_MODEL_PATH = "yolo"
+FACE_MODEL_PATH = "models"
+#if backend is sets
+API = False
+API_URL = 'http://127.0.0.1:8000/api/plot'
 # initialize minimum probability to filter weak detections along with
 # the threshold when applying non-maxima suppression
 MIN_CONF = 0.3
@@ -24,7 +28,7 @@ MAIL = ''
 # Set if GPU should be used for computations; Otherwise uses the CPU by default.
 USE_GPU = True
 # Define the max/min safe distance limits (in pixels) between 2 people.
-MAX_DISTANCE = 80
-MIN_DISTANCE = 50
+MAX_DISTANCE = 100
+MIN_DISTANCE = 30
 #===============================================================================
 #===============================================================================

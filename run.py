@@ -8,8 +8,10 @@ import numpy as np
 import argparse, cv2, os, time , imutils ,schedule
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
+import requests
+
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--input", type=str, default="mylib/videos/test.mp4",
+ap.add_argument("-i", "--input", type=str, default="mylib/videos/street01.mp4",
 	help="path to (optional) input video file")
 
 ap.add_argument("-d", "--display", type=int, default=1,
@@ -18,20 +20,23 @@ ap.add_argument("-d", "--display", type=int, default=1,
 
 args = vars(ap.parse_args())
 
-labelsPath = os.path.sep.join([config.MODEL_PATH, "coco.names"])
+labelsPath = os.path.sep.join([config.PEOPLE_MODEL_PATH, "coco.names"])
 LABELS = open(labelsPath).read().strip().split("\n")
 
 # derive the paths to the YOLO weights and model configuration
-weightsPath = os.path.sep.join([config.MODEL_PATH, "yolo-fastest.weights"])
-configPath = os.path.sep.join([config.MODEL_PATH, "yolo-fastest.cfg"])
+weightsPath = os.path.sep.join([config.PEOPLE_MODEL_PATH, "yolo-fastest.weights"])
+#weightsPath = os.path.sep.join([config.PEOPLE_MODEL_PATH, "yolov4-tiny.weights"])
+configPath = os.path.sep.join([config.PEOPLE_MODEL_PATH, "yolo-fastest.cfg"])
+#configPath = os.path.sep.join([config.PEOPLE_MODEL_PATH, "yolov4-tiny.cfg"])
 
 classes = ["good", "bad", "none"]
+#yolo = YOLO("models/yolov4-tiny.cfg", "models/yolov4-tiny.weights", classes)
 yolo = YOLO("models/yolo-fastest.cfg", "models/yolo-fastest.weights", classes)
 #yolo.size = int(args.size)
 yolo.size = 416
 #yolo.confidence = float(args.confidence)
 yolo.confidence = 0.5
-colors = [(200, 200, 200), (0, 165, 255), (0, 0, 200)]
+colors = [(50, 255, 50), (50, 165, 255), (50, 50, 255)]
 count = 0
 
 # load our YOLO object detector trained on COCO dataset (80 classes)
@@ -137,9 +142,9 @@ while True:
 		# if the index pair exists within the violation/abnormal sets, then update the color
 		
 		if i in serious:
-			color = (50, 200, 200)
+			color = (0, 165, 255)
 		elif i in abnormal:
-			color = (100, 255, 255) #orange = (0, 165, 255)
+			color = (0, 255, 255) #orange = (0, 165, 255)
 		
 
 		# draw (1) a bounding box around the person and (2) the
@@ -148,19 +153,42 @@ while True:
 		cv2.circle(frame, (cX, cY), 5, color, 2)
 		px = np.append(px,cX)
 		py = np.append(py,cY)
+
+	data_arr = []
+	#pxy = list(zip(px.astype(int), py.astype(int)))
+	#print(pxy)
+	arrx = px.astype(int)
+	arrx = arrx.astype(str)
+	arry = py.astype(int)
+	arry = arry.astype(str)
+	arrx = ','.join(arrx.tolist())
+	arry = ','.join(arry.tolist())
+	#mydata = (('x',int(i[0])),('y',int(i[1])))
+	mydata = {'scene':'scene1','x': arrx, 'y': arry}
+	#data_arr.append(mydata)
+	#print(mydata)
+	#api = False
+	if count%30==0 and config.API==True:
+		r = requests.post(config.API_URL, data = mydata)
+		print("[INFO] Data Send")
+		print(r.content)
+		count = 2
+	#data_arr = []
+
 	# draw some of the parameters
-	Safe_Distance = "Safe distance: >{} px".format(config.MAX_DISTANCE)
+	Safe_Distance = "Social Distance Set: >{} px".format(config.MAX_DISTANCE)
 	cv2.putText(frame, Safe_Distance, (470, frame.shape[0] - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.60, (255, 0, 0), 2)
-	Threshold = "Threshold limit: {}".format(config.Threshold)
+	Threshold = "Threshold: {}".format(config.Threshold)
 	cv2.putText(frame, Threshold, (470, frame.shape[0] - 50),cv2.FONT_HERSHEY_SIMPLEX, 0.60, (255, 0, 0), 2)
 
     # draw the total number of social distancing violations on the output frame
-	text = "Total serious violations: {}".format(len(serious))
+	text = "Under Safe Distance: {}".format(len(serious))
 	cv2.putText(frame, text, (10, frame.shape[0] - 55),cv2.FONT_HERSHEY_SIMPLEX, 0.70, (0, 0, 255), 2)
 
-	text1 = "Total abnormal violations: {}".format(len(abnormal))
+	text1 = "Concentrated: {}".format(len(abnormal))
 	cv2.putText(frame, text1, (10, frame.shape[0] - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.70, (0, 255, 255), 2)
-	if len(serious)>2 or len(abnormal)>2:
+	#if len(serious)>2 or len(abnormal)>2:
+	if len(px)>2 or len(py)>2:
 		if count>1:
 			ax1.cla()
 		plt.ion()
@@ -177,7 +205,7 @@ while True:
 
 	if args["display"] > 0:
 		# show the output frame
-		cv2.imshow("Real-Time Monitoring/Analysis Window", frame)
+		cv2.imshow("即時社交距離偵測", frame)
 		key = cv2.waitKey(1) & 0xFF
 
 		# if the `q` key was pressed, break from the loop
