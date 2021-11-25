@@ -10,19 +10,25 @@ import argparse, cv2, os, time , imutils ,schedule ,yaml
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 import requests
+
+
 COLOR_RED = (0, 0, 255)
 COLOR_GREEN = (0, 255, 0)
 COLOR_BLUE = (255, 0, 0)
-BIG_CIRCLE = 60
+COLOR_YELLOW = (0, 255, 255)
+COLOR_ORANGE = (255, 165, 0)
+COLOR_GREY = (200, 200, 200)
+BIG_CIRCLE = 30
 SMALL_CIRCLE = 3
+
+
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--input", type=str, default="mylib/videos/test.mp4",
+ap.add_argument("-i", "--input", type=str, default="mylib/videos/csmu1.mp4",
 	help="path to (optional) input video file")
 
 ap.add_argument("-d", "--display", type=int, default=1,
 	help="whether or not output frame should be displayed")
 	
-
 args = vars(ap.parse_args())
 
 labelsPath = os.path.sep.join([config.PEOPLE_MODEL_PATH, "coco.names"])
@@ -36,12 +42,12 @@ configPath = os.path.sep.join([config.PEOPLE_MODEL_PATH, "yolo-fastest.cfg"])
 
 classes = ["good", "bad", "none"]
 #yolo = YOLO("models/yolov4-tiny.cfg", "models/yolov4-tiny.weights", classes)
-yolo = YOLO("models/yolo-fastest.cfg", "models/yolo-fastest.weights", classes)
+yolo = YOLO(os.path.sep.join([config.FACE_MODEL_PATH,"yolo-fastest.cfg"]), os.path.sep.join([config.FACE_MODEL_PATH,"yolo-fastest.weights"]), classes)
 #yolo.size = int(args.size)
 yolo.size = 416
 #yolo.confidence = float(args.confidence)
 yolo.confidence = 0.5
-colors = [(50, 255, 50), (50, 165, 255), (50, 50, 255)]
+colors = [COLOR_GREEN, COLOR_YELLOW, COLOR_RED]
 count = 0
 
 # load our YOLO object detector trained on COCO dataset (80 classes)
@@ -51,7 +57,7 @@ net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
 if config.USE_GPU:
 	# set CUDA as the preferable backend and target
 	print("")
-	print("[INFO] Looking for GPU")
+	print("[提示] Looking for GPU")
 	net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
 	net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
@@ -67,7 +73,7 @@ del lna
 """
 # if a video path was not supplied, grab a reference to the camera
 if not args.get("input", False):
-	print("[INFO] Starting the live stream..")
+	print("[提示] Starting the live stream..")
 	vs = cv2.VideoCapture(config.url)
 	if config.Thread:
 			cap = thread.ThreadingClass(config.url)
@@ -75,24 +81,26 @@ if not args.get("input", False):
 
 # otherwise, grab a reference to the video file
 else:
-	print("[INFO] Starting the video..")
+	print("[提示] Starting the video..")
 	vs = cv2.VideoCapture(args["input"])
 	if config.Thread:
 			cap = thread.ThreadingClass(args["input"])
 
 # start the FPS counter
 fps = FPS().start()
-fig, ax1 = plt.subplots()
+#matplotlib figure size
+fig, ax1 = plt.subplots(figsize=(7,4))
 #fig2, ax2 = plt.subplots()
 
 #with open("../conf/config_birdview.yml", "r") as ymlfile:
 #   cfg = yaml.load(ymlfile)
-width_og, height_og = 1080,1920
+width_og, height_og = 540,960
 #corner_points = [[1200,10],[1279,719],[100,10],[10,719]]
-corner_points = [[1719,1],[1919,1079],[200,1],[1,1079]]
+#corner_points = [[1719,1],[1919,1079],[200,1],[1,1079]]
+corner_points = [[860,100],[960,540],[100,100],[1,540]]
 #corner_points = [[1919,1],[1919,1079],[1,1],[1,1079]]
 img_path = 'bk.png'
-size_frame = 1920
+size_frame = 960
 imgIn = imutils.resize(cv2.imread(img_path), width=int(size_frame))
 '''
 for section in cfg:
@@ -135,24 +143,16 @@ while True:
 		personIdx=LABELS.index("person"))
 
 	# initialize the set of indexes that violate the max/min social distance limits
-	serious = set()
-	abnormal = set()
-
-	# ensure there are *at least* two people detections (required in
-	# order to compute our pairwise distance maps)
-	if len(results) >= 2:
-		for detection in mask_results:
-			id, name, confidence, x, y, w, h = detection
-			#cx = x + (w / 2)
-			#cy = y + (h / 2)
-			color = colors[id]
-			cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-			text = "%s (%s)" % (name, round(confidence, 2))
-			cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
-		
-		# extract all centroids from the results and compute the
-		# Euclidean distances between all pairs of the centroids
+	#serious = set()
+	#abnormal = set()
+	# loop over the results
+	array_groundpoints = []
+	# extract all centroids from the results and compute the
+	# Euclidean distances between all pairs of the centroids
+	for (i, (prob, bbox, centroid)) in enumerate(results):
+		'''
 		centroids = np.array([r[2] for r in results])
+		
 		D = dist.cdist(centroids, centroids, metric="euclidean")
 
 		# loop over the upper triangular of the distance matrix
@@ -168,24 +168,20 @@ while True:
 				if (D[i, j] < config.MAX_DISTANCE) and not serious:
 					abnormal.add(i)
 					abnormal.add(j)
-
-	# loop over the results
-	array_groundpoints = []
-	for (i, (prob, bbox, centroid)) in enumerate(results):
+		'''
 		# extract the bounding box and centroid coordinates, then
 		# initialize the color of the annotation
 		(startX, startY, endX, endY) = bbox
 		(cX, cY) = centroid
-		color = (200, 200, 200)
+		color = COLOR_GREY
 		array_groundpoints.append(centroid)
 		# if the index pair exists within the violation/abnormal sets, then update the color
-		
+		'''
 		if i in serious:
-			color = (0, 165, 255)
+			color = COLOR_RED
 		elif i in abnormal:
-			color = (0, 255, 255) #orange = (0, 165, 255)
-		
-
+			color = COLOR_YELLOW #orange = (0, 165, 255)
+		'''
 		# draw (1) a bounding box around the person and (2) the
 		# centroid coordinates of the person,
 		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
@@ -197,6 +193,63 @@ while True:
 		px = np.append(px,cX)
 		py = np.append(py,cY)
 
+	# ensure there are *at least* two people detections (required in
+	# order to compute our pairwise distance maps)
+	nomask_counter = 0
+	if len(results) >= 2:
+		for detection in mask_results:
+			id, name, confidence, x, y, w, h = detection
+			#cx = x + (w / 2)
+			#cy = y + (h / 2)
+			color = colors[id]
+			cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+			text = "%s (%s)" % (name, round(confidence, 2))
+			cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
+			if id == 2 or id == 1:
+				nomask_counter += 1
+				print(nomask_counter)
+##########################BIRD VIEW POINTS TRANS################################
+		#data_arr = []
+		transformed_downoids = compute_point_perspective_transformation(matrix,array_groundpoints)
+		#img = cv2.imread("bk.png")
+		#img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+		bird_view_img = cv2.resize(imgOutput, dim, interpolation = cv2.INTER_AREA)
+		#print(transformed_downoids)
+		bX = []
+		bY = []
+		b_serious = set()
+		b_abnormal = set()
+		for point in transformed_downoids:
+			x,y = point
+			#x,y = abs(x),abs(y)
+			#x,y = round(x/2+300),round(y/2+300)
+			bX.append(y)
+			bY.append(x)
+
+			centroids = list(zip(bX, bY))
+			D = dist.cdist(centroids, centroids, metric="euclidean")
+
+			# loop over the upper triangular of the distance matrix
+			for i in range(0, D.shape[0]):
+				for j in range(i + 1, D.shape[1]):
+					# check to see if the distance between any two
+					# centroid pairs is less than the configured number of pixels
+					if D[i, j] < config.MIN_DISTANCE:
+						# update our violation set with the indexes of the centroid pairs
+						b_serious.add(i)
+						b_serious.add(j)
+					# update our abnormal set if the centroid distance is below max distance limit
+					if (D[i, j] < config.MAX_DISTANCE) and not b_serious:
+						b_abnormal.add(i)
+						b_abnormal.add(j)
+			b_color = COLOR_GREY
+			if i in b_serious:
+				b_color = COLOR_RED
+			elif i in b_abnormal:
+				b_color = COLOR_YELLOW				
+			cv2.circle(bird_view_img, (x,y), BIG_CIRCLE, b_color, 2)
+			cv2.circle(bird_view_img, (x,y), SMALL_CIRCLE, b_color, -1)
+################################################################################
 	data_arr = []
 	#pxy = list(zip(px.astype(int), py.astype(int)))
 	#print(pxy)
@@ -206,42 +259,56 @@ while True:
 	arry = arry.astype(str)
 	arrx = ','.join(arrx.tolist())
 	arry = ','.join(arry.tolist())
+	
+	social_distance = '0'
+	mask = nomask_counter
+################################ALERT###########################################	
+	if len(b_serious) >= config.Threshold:
+		#cv2.putText(frame, "-ALERT: Violations over limit-", (10, frame.shape[0] - 80), cv2.FONT_HERSHEY_COMPLEX, 0.60, (0, 0, 255), 2)
+		if config.ALERT:
+			print("[警告]未保持安全社交距離")
+			social_distance = len(b_serious)+len(b_abnormal)
+			print("未保持安全社交距離人數 : "+str(social_distance))
 	#mydata = (('x',int(i[0])),('y',int(i[1])))
-	mydata = {'x': arrx, 'y': arry}
+	mydata = {'scene':'scene1', 'x': arrx, 'y': arry, 'social_distance': social_distance, 'mask': mask }
 	#data_arr.append(mydata)s
 	#print(mydata)
-	
+##########################SEND DATA TO BACKEND API##############################
 	if count%30==0 and config.API==True:
 		r = requests.post(config.API_URL, data = mydata)
-		print("[INFO] Data Send")
+		print("[提示] 資料傳送")
 		print(r.content)
 		count = 2
-	#data_arr = []
-	transformed_downoids = compute_point_perspective_transformation(matrix,array_groundpoints)
-	#img = cv2.imread("bk.png")
-	#img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
-	bird_view_img = cv2.resize(imgOutput, dim, interpolation = cv2.INTER_AREA)
-	#print(transformed_downoids)
-	for point in transformed_downoids:
-		x,y = point
-		#x,y = abs(x),abs(y)
-		#x,y = round(x/2+300),round(y/2+300)
-		print(x,y)
-		cv2.circle(bird_view_img, (x,y), BIG_CIRCLE, COLOR_GREEN, 2)
-		cv2.circle(bird_view_img, (x,y), SMALL_CIRCLE, COLOR_GREEN, -1)
+
 	# draw some of the parameters
-	Safe_Distance = "Social Distance Set: >{} px".format(config.MAX_DISTANCE)
+	Safe_Distance = "Social Distance: >{} px".format(config.MAX_DISTANCE)
 	cv2.putText(frame, Safe_Distance, (470, frame.shape[0] - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.60, (255, 0, 0), 2)
-	Threshold = "Threshold: {}".format(config.Threshold)
-	cv2.putText(frame, Threshold, (470, frame.shape[0] - 50),cv2.FONT_HERSHEY_SIMPLEX, 0.60, (255, 0, 0), 2)
+	#Threshold = "Threshold: {}".format(config.Threshold)
+	#cv2.putText(frame, Threshold, (470, frame.shape[0] - 50),cv2.FONT_HERSHEY_SIMPLEX, 0.60, (255, 0, 0), 2)
 
     # draw the total number of social distancing violations on the output frame
-	text = "Under Safe Distance: {}".format(len(serious))
+	text = "Under Safe Distance: {}".format(len(b_serious))
 	cv2.putText(frame, text, (10, frame.shape[0] - 55),cv2.FONT_HERSHEY_SIMPLEX, 0.70, (0, 0, 255), 2)
 
-	text1 = "Concentrated: {}".format(len(abnormal))
+	text1 = "Concentrated: {}".format(len(b_abnormal))
 	cv2.putText(frame, text1, (10, frame.shape[0] - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.70, (0, 255, 255), 2)
 	#if len(serious)>2 or len(abnormal)>2:
+	if len(px)>2 or len(py)>2:
+		if count>1:
+			ax1.cla()
+		plt.ion()
+		k = gaussian_kde(np.vstack([bX, bY]))
+		xi, yi = np.mgrid[0:frame.shape[1]:72*1j,0:frame.shape[0]:128*1j]
+		zi = k(np.vstack([xi.flatten(), yi.flatten()]))
+		ax1.contourf(xi, yi, zi.reshape(xi.shape), alpha=0.5)
+		ax1.set_xlim(0, frame.shape[1])
+		ax1.set_ylim(0, frame.shape[0])
+
+		plt.gca().invert_yaxis()
+		plt.gca().invert_xaxis()
+		plt.show(block=False)
+		del px, py
+	"""
 	if len(px)>2 or len(py)>2:
 		if count>1:
 			ax1.cla()
@@ -256,12 +323,18 @@ while True:
 		plt.gca().invert_yaxis()
 		plt.show(block=False)
 		del px, py
+	"""
 
 	if args["display"] > 0:
 		# show the output frame
 		#cv2.imshow("Bird view", cv2.flip(bird_view_img,-1))
-		cv2.imshow("Bird view", cv2.rotate(bird_view_img, cv2.ROTATE_90_CLOCKWISE))
-		cv2.imshow("即時社交距離偵測", frame)
+		cv2.namedWindow('Bird View',cv2.WINDOW_NORMAL)
+		cv2.resizeWindow("Bird View",720,405)
+		cv2.imshow("Bird View", cv2.rotate(bird_view_img, cv2.ROTATE_90_CLOCKWISE))
+
+		cv2.namedWindow('Realtime Vision',cv2.WINDOW_NORMAL)
+		cv2.resizeWindow("Realtime Vision",720,405)
+		cv2.imshow("Realtime Vision", frame)
 		key = cv2.waitKey(1) & 0xFF
 
 		# if the `q` key was pressed, break from the loop
@@ -273,8 +346,8 @@ while True:
 # stop the timer and display FPS information
 fps.stop()
 print("===========================")
-print("[INFO] Elasped time: {:.2f}".format(fps.elapsed()))
-print("[INFO] Approx. FPS: {:.2f}".format(fps.fps()))
+print("[提示] 總時長: {:.2f}".format(fps.elapsed()))
+print("[提示] 估幀數: {:.2f}".format(fps.fps()))
 
 # close any open windows
 cv2.destroyAllWindows()

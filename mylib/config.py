@@ -17,18 +17,18 @@ People_Counter = True
 # Threading ON/OFF. Please refer 'mylib>thread.py'.
 Thread = False
 # Set the threshold value for total violations limit.
-Threshold = 15
+Threshold = 2
 # Enter the ip camera url (e.g., url = 'http://191.138.0.100:8040/video');
 # Set url = 0 for webcam.
 url = 0
 # Turn ON/OFF the email alert feature.
-ALERT = False
+ALERT = True
 # Set mail to receive the real-time alerts. E.g., 'xxx@gmail.com'.
-MAIL = ''
+#MAIL = ''
 # Set if GPU should be used for computations; Otherwise uses the CPU by default.
 USE_GPU = True
 # Define the max/min safe distance limits (in pixels) between 2 people.
 MAX_DISTANCE = 100
-MIN_DISTANCE = 30
+MIN_DISTANCE = 60
 #===============================================================================
 #===============================================================================

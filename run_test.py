@@ -16,7 +16,7 @@ COLOR_BLUE = (255, 0, 0)
 BIG_CIRCLE = 60
 SMALL_CIRCLE = 3
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--input", type=str, default="mylib/videos/test.mp4",
+ap.add_argument("-i", "--input", type=str, default=0,
 	help="path to (optional) input video file")
 
 ap.add_argument("-d", "--display", type=int, default=1,
