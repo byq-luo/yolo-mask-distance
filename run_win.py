@@ -1,5 +1,5 @@
 from mylib import config, thread
-from mylib.yolo import YOLO
+from mylib.yolo_win import YOLO
 from mylib.mailer import Mailer
 from mylib.detection import detect_people
 from mylib.birdview import compute_perspective_transform,compute_point_perspective_transformation
@@ -63,14 +63,14 @@ if config.USE_GPU:
 
 # determine only the *output* layer names that we need from YOLO
 ln = net.getLayerNames()
-#lna = list()
-ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
-"""
+lna = list()
+#ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+
 for i in net.getUnconnectedOutLayers():
 	lna.append(ln[[i][0]-1])
 ln = lna
 del lna
-"""
+
 # if a video path was not supplied, grab a reference to the camera
 if not args.get("input", False):
 	print("[提示] Starting the live stream..")
@@ -226,7 +226,7 @@ while True:
 			bX.append(y)
 			bY.append(x)
 
-			centroids = np.array(list(zip(bX, bY)))
+			centroids = list(zip(bX, bY))
 			D = dist.cdist(centroids, centroids, metric="euclidean")
 
 			# loop over the upper triangular of the distance matrix
@@ -246,10 +246,9 @@ while True:
 			if i in b_serious:
 				b_color = COLOR_RED
 			elif i in b_abnormal:
-				b_color = COLOR_YELLOW
-
-			cv2.circle(bird_view_img, (x,y), BIG_CIRCLE, b_color, 2)
-			cv2.circle(bird_view_img, (x,y), SMALL_CIRCLE, b_color, -1)
+				b_color = COLOR_YELLOW				
+			cv2.circle(bird_view_img, (int(x),int(y)), BIG_CIRCLE, b_color, 2)
+			cv2.circle(bird_view_img, (int(x),int(y)), SMALL_CIRCLE, b_color, -1)
 ################################################################################
 	data_arr = []
 	#pxy = list(zip(px.astype(int), py.astype(int)))

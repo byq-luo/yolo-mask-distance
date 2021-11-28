@@ -28,7 +28,7 @@ ALERT = True
 # Set if GPU should be used for computations; Otherwise uses the CPU by default.
 USE_GPU = True
 # Define the max/min safe distance limits (in pixels) between 2 people.
-MAX_DISTANCE = 100
-MIN_DISTANCE = 60
+MAX_DISTANCE = 120
+MIN_DISTANCE = 80
 #===============================================================================
 #===============================================================================
