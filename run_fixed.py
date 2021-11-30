@@ -23,7 +23,7 @@ SMALL_CIRCLE = 3
 
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--input", type=str, default="mylib/videos/csmu1.mp4",
+ap.add_argument("-i", "--input", type=str, default="",
 	help="path to (optional) input video file")
 
 ap.add_argument("-d", "--display", type=int, default=1,
@@ -93,7 +93,7 @@ fig, ax1 = plt.subplots(figsize=(7,4))
 #fig2, ax2 = plt.subplots()
 
 #with open("../conf/config_birdview.yml", "r") as ymlfile:
-#   cfg = yaml.load(ymlfile)
+#cfg = yaml.load(ymlfile)
 width_og, height_og = 540,960
 #corner_points = [[1200,10],[1279,719],[100,10],[10,719]]
 #corner_points = [[1719,1],[1919,1079],[200,1],[1,1079]]
@@ -216,7 +216,6 @@ while True:
 		#img = cv2.imread("bk.png")
 		#img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
 		bird_view_img = cv2.resize(imgOutput, dim, interpolation = cv2.INTER_AREA)
-		#print(transformed_downoids)
 		bX = []
 		bY = []
 		for point in transformed_downoids:
@@ -327,11 +326,13 @@ while True:
 	"""
 
 	if args["display"] > 0:
-		# show the output frame
 		#cv2.imshow("Bird view", cv2.flip(bird_view_img,-1))
 		cv2.namedWindow('Bird View',cv2.WINDOW_NORMAL)
 		cv2.resizeWindow("Bird View",720,405)
-		cv2.imshow("Bird View", cv2.rotate(bird_view_img, cv2.ROTATE_90_CLOCKWISE))
+		try:
+			cv2.imshow("Bird View", cv2.rotate(bird_view_img, cv2.ROTATE_90_CLOCKWISE))
+		except:
+			print('nothing detected')
 
 		cv2.namedWindow('Realtime Vision',cv2.WINDOW_NORMAL)
 		cv2.resizeWindow("Realtime Vision",720,405)

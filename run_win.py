@@ -330,7 +330,10 @@ while True:
 		#cv2.imshow("Bird view", cv2.flip(bird_view_img,-1))
 		cv2.namedWindow('Bird View',cv2.WINDOW_NORMAL)
 		cv2.resizeWindow("Bird View",720,405)
-		cv2.imshow("Bird View", cv2.rotate(bird_view_img, cv2.ROTATE_90_CLOCKWISE))
+		try:
+			cv2.imshow("Bird View", cv2.rotate(bird_view_img, cv2.ROTATE_90_CLOCKWISE))
+		except:
+			print('nothing detected')
 
 		cv2.namedWindow('Realtime Vision',cv2.WINDOW_NORMAL)
 		cv2.resizeWindow("Realtime Vision",720,405)
