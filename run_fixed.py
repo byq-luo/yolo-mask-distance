@@ -25,7 +25,7 @@ SMALL_CIRCLE = 3
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--input", type=str, default="",
 	help="path to (optional) input video file")
-
+#mylib/videos/csmu1.mp4
 ap.add_argument("-d", "--display", type=int, default=1,
 	help="whether or not output frame should be displayed")
 	
@@ -97,7 +97,7 @@ fig, ax1 = plt.subplots(figsize=(7,4))
 width_og, height_og = 540,960
 #corner_points = [[1200,10],[1279,719],[100,10],[10,719]]
 #corner_points = [[1719,1],[1919,1079],[200,1],[1,1079]]
-corner_points = [[860,100],[960,540],[100,100],[1,540]]
+corner_points = [[700,100],[960,540],[200,80],[1,540]]
 #corner_points = [[1919,1],[1919,1079],[1,1],[1,1079]]
 img_path = 'bk.png'
 size_frame = 960
@@ -184,12 +184,12 @@ while True:
 		'''
 		# draw (1) a bounding box around the person and (2) the
 		# centroid coordinates of the person,
-		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
+		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 1)
 		cv2.circle(frame, (cX, cY), 5, color, 2)
-		cv2.line(frame, (corner_points[0][0], corner_points[0][1]), (corner_points[1][0], corner_points[1][1]), COLOR_BLUE, thickness=1)
-		cv2.line(frame, (corner_points[1][0], corner_points[1][1]), (corner_points[3][0], corner_points[3][1]), COLOR_BLUE, thickness=1)
-		cv2.line(frame, (corner_points[0][0], corner_points[0][1]), (corner_points[2][0], corner_points[2][1]), COLOR_BLUE, thickness=1)
-		cv2.line(frame, (corner_points[3][0], corner_points[3][1]), (corner_points[2][0], corner_points[2][1]), COLOR_BLUE, thickness=1)
+		cv2.line(frame, (corner_points[0][0], corner_points[0][1]), (corner_points[1][0], corner_points[1][1]), COLOR_BLUE, thickness=2)
+		cv2.line(frame, (corner_points[1][0], corner_points[1][1]), (corner_points[3][0], corner_points[3][1]), COLOR_BLUE, thickness=2)
+		cv2.line(frame, (corner_points[0][0], corner_points[0][1]), (corner_points[2][0], corner_points[2][1]), COLOR_BLUE, thickness=2)
+		cv2.line(frame, (corner_points[3][0], corner_points[3][1]), (corner_points[2][0], corner_points[2][1]), COLOR_BLUE, thickness=2)
 		px = np.append(px,cX)
 		py = np.append(py,cY)
 
@@ -242,10 +242,11 @@ while True:
 						b_abnormal.add(i)
 						b_abnormal.add(j)
 			b_color = COLOR_GREY
+			'''
 			if i in b_serious:
 				b_color = COLOR_RED
 			elif i in b_abnormal:
-				b_color = COLOR_YELLOW
+				b_color = COLOR_YELLOW'''
 
 			cv2.circle(bird_view_img, (x,y), BIG_CIRCLE, b_color, 2)
 			cv2.circle(bird_view_img, (x,y), SMALL_CIRCLE, b_color, -1)
@@ -270,7 +271,7 @@ while True:
 			social_distance = len(b_serious)+len(b_abnormal)
 			print("未保持安全社交距離人數 : "+str(social_distance))
 	#mydata = (('x',int(i[0])),('y',int(i[1])))
-	mydata = {'scene':'scene1', 'x': arrx, 'y': arry, 'social_distance': social_distance, 'mask': mask }
+	mydata = {'scene':'A區', 'x': arrx, 'y': arry, 'social_distance': social_distance, 'mask': mask }
 	#data_arr.append(mydata)s
 	#print(mydata)
 ##########################SEND DATA TO BACKEND API##############################
@@ -332,7 +333,7 @@ while True:
 		try:
 			cv2.imshow("Bird View", cv2.rotate(bird_view_img, cv2.ROTATE_90_CLOCKWISE))
 		except:
-			print('nothing detected')
+			cv2.imshow("Bird View",cv2.imread('bk.png'))
 
 		cv2.namedWindow('Realtime Vision',cv2.WINDOW_NORMAL)
 		cv2.resizeWindow("Realtime Vision",720,405)
