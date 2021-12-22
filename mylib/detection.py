@@ -12,7 +12,8 @@ def detect_people(frame, net, ln, personIdx=0):
 	# construct a blob from the input frame and then perform a forward
 	# pass of the YOLO object detector, giving us our bounding boxes
 	# and associated probabilities
-	blob = cv2.dnn.blobFromImage(frame, 1 / 255.0, (416, 416),
+	#(416, 416)
+	blob = cv2.dnn.blobFromImage(frame, 1 / 255.0, (320, 320),
 		swapRB=True, crop=False)
 	net.setInput(blob)
 	layerOutputs = net.forward(ln)

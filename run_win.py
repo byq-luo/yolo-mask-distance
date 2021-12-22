@@ -44,7 +44,8 @@ classes = ["good", "bad", "none"]
 #yolo = YOLO("models/yolov4-tiny.cfg", "models/yolov4-tiny.weights", classes)
 yolo = YOLO(os.path.sep.join([config.FACE_MODEL_PATH,"yolo-fastest.cfg"]), os.path.sep.join([config.FACE_MODEL_PATH,"yolo-fastest.weights"]), classes)
 #yolo.size = int(args.size)
-yolo.size = 416
+yolo.size = 320
+#416
 #yolo.confidence = float(args.confidence)
 yolo.confidence = 0.5
 colors = [COLOR_GREEN, COLOR_YELLOW, COLOR_RED]
