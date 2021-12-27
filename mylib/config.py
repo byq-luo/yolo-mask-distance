@@ -2,8 +2,9 @@
 PEOPLE_MODEL_PATH = "yolo"
 FACE_MODEL_PATH = "models"
 #if backend is sets
-API = False
-API_URL = 'http://127.0.0.1:8000/api/plot'
+API = True
+#API_URL = 'http://127.0.0.1:8000/api/plot'
+API_URL = 'http://140.128.137.23/%e4%ba%ba%e7%be%a4%e7%9b%a3%e6%8e%a7%e7%b3%bb%e7%b5%b1/python-laravel-backend/public/api/plot'
 # initialize minimum probability to filter weak detections along with
 # the threshold when applying non-maxima suppression
 MIN_CONF = 0.3
