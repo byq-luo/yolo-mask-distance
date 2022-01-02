@@ -1,5 +1,5 @@
 from mylib import config, thread
-from mylib.yolo import YOLO
+from mylib.yolo_win import YOLO
 from mylib.mailer import Mailer
 from mylib.detection import detect_people
 from mylib.birdview import compute_perspective_transform,compute_point_perspective_transformation
@@ -25,7 +25,7 @@ SMALL_CIRCLE = 3
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--input", type=str, default="mylib/videos/csmu1.mp4",
 	help="path to (optional) input video file")
-#mylib/videos/csmu1.mp4
+
 ap.add_argument("-d", "--display", type=int, default=1,
 	help="whether or not output frame should be displayed")
 	
@@ -44,8 +44,8 @@ classes = ["good", "bad", "none"]
 #yolo = YOLO("models/yolov4-tiny.cfg", "models/yolov4-tiny.weights", classes)
 yolo = YOLO(os.path.sep.join([config.FACE_MODEL_PATH,"yolo-fastest.cfg"]), os.path.sep.join([config.FACE_MODEL_PATH,"yolo-fastest.weights"]), classes)
 #yolo.size = int(args.size)
-#yolo.size = 416
 yolo.size = 320
+#416
 #yolo.confidence = float(args.confidence)
 yolo.confidence = 0.5
 colors = [COLOR_GREEN, COLOR_YELLOW, COLOR_RED]
@@ -65,6 +65,8 @@ if config.USE_GPU:
 # determine only the *output* layer names that we need from YOLO
 ln = net.getLayerNames()
 lna = list()
+#ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+
 for i in net.getUnconnectedOutLayers():
 	lna.append(ln[[i][0]-1])
 ln = lna
@@ -92,11 +94,11 @@ fig, ax1 = plt.subplots(figsize=(7,4))
 #fig2, ax2 = plt.subplots()
 
 #with open("../conf/config_birdview.yml", "r") as ymlfile:
-#cfg = yaml.load(ymlfile)
+#   cfg = yaml.load(ymlfile)
 width_og, height_og = 540,960
 #corner_points = [[1200,10],[1279,719],[100,10],[10,719]]
 #corner_points = [[1719,1],[1919,1079],[200,1],[1,1079]]
-corner_points = [[700,100],[960,540],[200,80],[1,540]]
+corner_points = [[860,100],[960,540],[100,100],[1,540]]
 #corner_points = [[1919,1],[1919,1079],[1,1],[1,1079]]
 img_path = 'bk.png'
 size_frame = 960
@@ -183,12 +185,12 @@ while True:
 		'''
 		# draw (1) a bounding box around the person and (2) the
 		# centroid coordinates of the person,
-		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 1)
+		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
 		cv2.circle(frame, (cX, cY), 5, color, 2)
-		cv2.line(frame, (corner_points[0][0], corner_points[0][1]), (corner_points[1][0], corner_points[1][1]), COLOR_BLUE, thickness=2)
-		cv2.line(frame, (corner_points[1][0], corner_points[1][1]), (corner_points[3][0], corner_points[3][1]), COLOR_BLUE, thickness=2)
-		cv2.line(frame, (corner_points[0][0], corner_points[0][1]), (corner_points[2][0], corner_points[2][1]), COLOR_BLUE, thickness=2)
-		cv2.line(frame, (corner_points[3][0], corner_points[3][1]), (corner_points[2][0], corner_points[2][1]), COLOR_BLUE, thickness=2)
+		cv2.line(frame, (corner_points[0][0], corner_points[0][1]), (corner_points[1][0], corner_points[1][1]), COLOR_BLUE, thickness=1)
+		cv2.line(frame, (corner_points[1][0], corner_points[1][1]), (corner_points[3][0], corner_points[3][1]), COLOR_BLUE, thickness=1)
+		cv2.line(frame, (corner_points[0][0], corner_points[0][1]), (corner_points[2][0], corner_points[2][1]), COLOR_BLUE, thickness=1)
+		cv2.line(frame, (corner_points[3][0], corner_points[3][1]), (corner_points[2][0], corner_points[2][1]), COLOR_BLUE, thickness=1)
 		px = np.append(px,cX)
 		py = np.append(py,cY)
 
@@ -215,6 +217,7 @@ while True:
 		#img = cv2.imread("bk.png")
 		#img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
 		bird_view_img = cv2.resize(imgOutput, dim, interpolation = cv2.INTER_AREA)
+		#print(transformed_downoids)
 		bX = []
 		bY = []
 		for point in transformed_downoids:
@@ -224,7 +227,7 @@ while True:
 			bX.append(y)
 			bY.append(x)
 
-			centroids = np.array(list(zip(bX, bY)))
+			centroids = list(zip(bX, bY))
 			D = dist.cdist(centroids, centroids, metric="euclidean")
 
 			# loop over the upper triangular of the distance matrix
@@ -245,10 +248,10 @@ while True:
 			if i in b_serious:
 				b_color = COLOR_RED
 			elif i in b_abnormal:
-				b_color = COLOR_YELLOW'''
-
-			cv2.circle(bird_view_img, (x,y), BIG_CIRCLE, b_color, 2)
-			cv2.circle(bird_view_img, (x,y), SMALL_CIRCLE, b_color, -1)
+				b_color = COLOR_YELLOW
+			'''				
+			cv2.circle(bird_view_img, (int(x),int(y)), BIG_CIRCLE, b_color, 2)
+			cv2.circle(bird_view_img, (int(x),int(y)), SMALL_CIRCLE, b_color, -1)
 ################################################################################
 	data_arr = []
 	#pxy = list(zip(px.astype(int), py.astype(int)))
@@ -270,7 +273,7 @@ while True:
 			social_distance = len(b_serious)+len(b_abnormal)
 			print("未保持安全社交距離人數 : "+str(social_distance))
 	#mydata = (('x',int(i[0])),('y',int(i[1])))
-	mydata = {'scene':'A區', 'x': arrx, 'y': arry, 'social_distance': social_distance, 'mask': mask }
+	mydata = {'scene':'scene1', 'x': arrx, 'y': arry, 'social_distance': social_distance, 'mask': mask }
 	#data_arr.append(mydata)s
 	#print(mydata)
 ##########################SEND DATA TO BACKEND API##############################
@@ -326,13 +329,14 @@ while True:
 	"""
 
 	if args["display"] > 0:
+		# show the output frame
 		#cv2.imshow("Bird view", cv2.flip(bird_view_img,-1))
 		cv2.namedWindow('Bird View',cv2.WINDOW_NORMAL)
 		cv2.resizeWindow("Bird View",720,405)
 		try:
 			cv2.imshow("Bird View", cv2.rotate(bird_view_img, cv2.ROTATE_90_CLOCKWISE))
 		except:
-			cv2.imshow("Bird View",cv2.imread('bk.png'))
+			print('nothing detected')
 
 		cv2.namedWindow('Realtime Vision',cv2.WINDOW_NORMAL)
 		cv2.resizeWindow("Realtime Vision",720,405)

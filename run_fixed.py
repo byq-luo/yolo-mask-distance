@@ -98,7 +98,8 @@ fig, ax1 = plt.subplots(figsize=(7,4))
 width_og, height_og = 540,960
 #corner_points = [[1200,10],[1279,719],[100,10],[10,719]]
 #corner_points = [[1719,1],[1919,1079],[200,1],[1,1079]]
-corner_points = [[700,100],[960,540],[200,80],[1,540]]
+#corner_points = [[700,100],[960,540],[200,80],[1,540]]
+corner_points = [[550,5],[625,450],[100,10],[5,450]]
 #corner_points = [[1919,1],[1919,1079],[1,1],[1,1079]]
 img_path = 'bk.png'
 size_frame = 960
